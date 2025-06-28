@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiSA PWA Icon Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .icon-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        .icon-canvas {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            margin-bottom: 8px;
+        }
+        button {
+            background: #1e40af;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .download-all {
+            background: #059669;
+            font-size: 16px;
+            padding: 15px 30px;
+            margin-top: 20px;
+        }
+        .instructions {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            color: #1e40af;
+            margin-top: 0;
+        }
+        .instructions ol {
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 LiSA PWA Icon Generator</h1>
+        <p>Generate all the icons you need for your LiSA PWA app:</p>
+        
+        <div class="icon-preview" id="iconPreview"></div>
+        
+        <button onclick="generateAllIcons()" class="download-all">📱 Generate All PWA Icons</button>
+        
+        <div class="instructions">
+            <h3>📋 Setup Instructions</h3>
+            <ol>
+                <li><strong>Generate Icons:</strong> Click "Generate All PWA Icons" above</li>
+                <li><strong>Download:</strong> Right-click each icon and save to your <code>public/</code> folder</li>
+                <li><strong>File Structure:</strong> Save the manifest.json and sw.js to your <code>public/</code> folder</li>
+                <li><strong>Update HTML:</strong> Replace your index.html with the PWA-ready version</li>
+                <li><strong>Deploy:</strong> Follow the Vercel deployment steps below</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        
+        function generateIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#1e40af');
+            gradient.addColorStop(1, '#3b82f6');
+            
+            // Draw background with rounded corners
+            const radius = size * 0.2;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+            
+            // Draw LiSA text
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.25}px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('LiSA', size / 2, size * 0.4);
+            
+            // Draw subtitle
+            ctx.font = `${size * 0.1}px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillText('Life Stage Advisor', size / 2, size * 0.65);
+            
+            // Draw decorative element
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(size * 0.8, size * 0.2, size * 0.05, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            return canvas;
+        }
+        
+        function generateAllIcons() {
+            const preview = document.getElementById('iconPreview');
+            preview.innerHTML = '';
+            
+            iconSizes.forEach(size => {
+                const canvas = generateIcon(size);
+                canvas.className = 'icon-canvas';
+                
+                const container = document.createElement('div');
+                container.className = 'icon-item';
+                
+                const label = document.createElement('div');
+                label.textContent = `${size}×${size}`;
+                label.style.fontWeight = '600';
+                label.style.fontSize = '14px';
+                label.style.color = '#374151';
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.onclick = () => downloadIcon(canvas, size);
+                
+                container.appendChild(canvas);
+                container.appendChild(label);
+                container.appendChild(downloadBtn);
+                preview.appendChild(container);
+            });
+        }
+        
+        function downloadIcon(canvas, size) {
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Add roundRect polyfill for older browsers
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+        
+        // Generate icons on load
+        generateAllIcons();
+    </script>
+</body>
+</html>
