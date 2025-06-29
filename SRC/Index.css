@@ -16,4 +16,8 @@ code {
   box-sizing: border-box;
 }
 
-/* Tailwind CSS is loaded via CDN in the React component */
+html, body, #root {
+  height: 100%;
+}
+
+/* Tailwind CSS classes are handled by the component library */
