@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "AI-powered financial planning assistant for every life stage",
-  "homepage": "https://intergen-01.github.io/lisa-app-pwa",
+  "homepage": ".",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
