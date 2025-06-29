@@ -466,6 +466,13 @@ const App = () => {
     }
     viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
     
+    // Handle PWA shortcuts
+    const shortcut = localStorage.getItem('lisa-shortcut');
+    if (shortcut === 'new-analysis') {
+      setCurrentScreen('questionnaire');
+      localStorage.removeItem('lisa-shortcut');
+    }
+    
     return () => {
       if (document.head.contains(style)) {
         document.head.removeChild(style);
@@ -708,19 +715,16 @@ const App = () => {
                   }}
                   className="group relative p-6 md:p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-2 text-center flex flex-col items-center justify-center border border-gray-200 hover:border-blue-300 h-56 md:h-64 lg:h-72"
                 >
-                  {/* Category badge at top */}
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-4 py-1 bg-gray-600 text-white rounded-full text-xs md:text-sm font-medium shadow-md">
                     {stage.category}
                   </div>
                   
-                  {/* Icon - larger and more centered */}
                   <div className="mb-4 md:mb-6 flex items-center justify-center">
                     <div className="text-5xl md:text-6xl lg:text-7xl transform group-hover:scale-110 transition-all duration-300">
                       {stage.icon}
                     </div>
                   </div>
                   
-                  {/* Text content - better centered and spaced */}
                   <div className="flex flex-col items-center space-y-2">
                     <div className="text-gray-900 font-bold text-lg md:text-xl lg:text-2xl text-center">
                       {stage.name}
@@ -733,7 +737,6 @@ const App = () => {
                     </div>
                   </div>
 
-                  {/* Hover border effect */}
                   <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-blue-300 transition-all duration-300"></div>
                 </button>
               ))}
@@ -804,14 +807,8 @@ const App = () => {
                         : '0 2px 8px rgba(0,0,0,0.08)'
                     }}
                   >
-                    {activeCategory === category.id && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-white/20 to-blue-400/10 animate-pulse"></div>
-                    )}
-                    
                     <span className="text-lg relative z-10">{category.icon}</span>
                     <span className="font-semibold text-xs relative z-10">{category.name}</span>
-                    
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
                   </button>
                 ))}
               </div>
@@ -873,7 +870,7 @@ const App = () => {
                       <div className="w-48 text-sm font-medium text-gray-700 text-right pr-4">{expense.category}</div>
                       <div className="flex-1 bg-gray-100 rounded-lg h-12 relative overflow-hidden">
                         <div 
-                          className={`h-full rounded-lg transition-all duration-1000 delay-${idx * 150} bg-gradient-to-r`}
+                          className={`h-full rounded-lg transition-all duration-1000 bg-gradient-to-r`}
                           style={{
                             width: `${(expense.amount / maxExpense) * 100}%`,
                             background: activeCategory === 'expenses' ? 'linear-gradient(90deg, #EF4444, #DC2626)' :
@@ -1127,115 +1124,6 @@ const App = () => {
             </div>
           </div>
 
-          {timelineData.length > 0 && (
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <h2 className="text-2xl font-bold mb-6">Income vs Expenses Timeline</h2>
-              <div className="mb-4 text-center">
-                <p className="text-gray-600">Projected annual income vs expenses from age {timelineData[0]?.age || 25} to 90</p>
-              </div>
-              
-              <div className="w-full">
-                <div className="relative w-full h-80">
-                  <div className="absolute left-0 top-0 bottom-0 w-16 flex flex-col justify-between text-xs text-gray-500">
-                    <span>$200k</span>
-                    <span>$150k</span>
-                    <span>$100k</span>
-                    <span>$50k</span>
-                    <span>$0</span>
-                  </div>
-                  
-                  <div className="ml-16 h-full relative">
-                    {timelineData.map((point, idx) => {
-                      const maxValue = 200000;
-                      const incomeHeight = Math.max(5, (point.income / maxValue) * 250);
-                      const expenseHeight = Math.max(5, (point.expenses / maxValue) * 250);
-                      const surplusHeight = Math.max(0, (point.surplus / maxValue) * 250);
-                      const barWidth = Math.max(2, (100 / timelineData.length) * 0.8);
-                      const xPosition = (idx / (timelineData.length - 1)) * 95;
-                      
-                      return (
-                        <div 
-                          key={idx} 
-                          className="absolute bottom-0 group cursor-pointer"
-                          style={{
-                            left: `${xPosition}%`,
-                            width: `${barWidth}%`
-                          }}
-                        >
-                          <div 
-                            className="bg-gradient-to-t from-blue-400 to-blue-500 rounded-t-sm transition-all duration-300 hover:from-blue-500 hover:to-blue-600 w-full"
-                            style={{height: `${incomeHeight}px`}}
-                          ></div>
-                          
-                          <div 
-                            className="bg-gradient-to-t from-red-400 to-red-500 absolute bottom-0 rounded-t-sm transition-all duration-300 hover:from-red-500 hover:to-red-600 w-full"
-                            style={{
-                              height: `${expenseHeight}px`
-                            }}
-                          ></div>
-                          
-                          {point.surplus > 0 && (
-                            <div 
-                              className="bg-gradient-to-t from-green-400 to-green-500 absolute rounded-t-sm transition-all duration-300 w-full"
-                              style={{
-                                bottom: `${expenseHeight}px`,
-                                height: `${surplusHeight}px`
-                              }}
-                            ></div>
-                          )}
-                          
-                          {(point.age % 10 === 0 || idx === 0 || idx === timelineData.length - 1) && (
-                            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 font-medium text-center">
-                              <div>Age {point.age}</div>
-                              <div className="text-gray-400">{point.year}</div>
-                            </div>
-                          )}
-                          
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                            <div>Age {point.age} ({point.year})</div>
-                            <div>Income: ${point.income.toLocaleString()}</div>
-                            <div>Expenses: ${point.expenses.toLocaleString()}</div>
-                            <div>Surplus: ${point.surplus.toLocaleString()}</div>
-                            {point.events.length > 0 && (
-                              <div className="border-t border-gray-600 mt-1 pt-1">
-                                Events: {point.events.map(e => e.event).join(', ')}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    <div className="absolute inset-0 pointer-events-none">
-                      {[50000, 100000, 150000, 200000].map((value, idx) => (
-                        <div 
-                          key={idx}
-                          className="absolute w-full border-t border-gray-200"
-                          style={{bottom: `${(value / 200000) * 250}px`}}
-                        ></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-center mt-12 space-x-8 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-t from-blue-400 to-blue-500 rounded"></div>
-                  <span>Total Income</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-t from-red-400 to-red-500 rounded"></div>
-                  <span>Expenses + Life Events</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gradient-to-t from-green-400 to-green-500 rounded"></div>
-                  <span>Available Surplus</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="bg-white rounded-lg p-6">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -1268,76 +1156,6 @@ const App = () => {
                       </div>
                     );
                   })}
-                </div>
-              </div>
-            )}
-
-            {mediumRiskEvents.length > 0 && (
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="w-5 h-5 text-orange-500" />
-                  <h3 className="text-lg font-semibold text-orange-700">Important to Consider</h3>
-                  <span className="text-sm text-gray-500">(Medium Impact or Probability)</span>
-                </div>
-                
-                <div className="flex gap-4 overflow-x-auto pb-4">
-                  {mediumRiskEvents
-                    .sort((a, b) => {
-                      const getTimeframePriority = (timeframe) => {
-                        if (timeframe.includes('1-')) return 1;
-                        if (timeframe.includes('2-')) return 2;
-                        if (timeframe.includes('3-')) return 3;
-                        if (timeframe.includes('5-')) return 5;
-                        if (timeframe.includes('8-')) return 8;
-                        return 999;
-                      };
-                      return getTimeframePriority(a.timeframe) - getTimeframePriority(b.timeframe);
-                    })
-                    .map((event, idx) => {
-                      const IconComponent = getEventIcon(event.category);
-                      
-                      return (
-                        <div 
-                          key={idx} 
-                          className="w-64 h-40 flex-shrink-0 border border-orange-200 rounded-lg p-4 bg-orange-50 relative overflow-hidden"
-                        >
-                          <div className="absolute top-2 right-2 text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                            {event.timeframe}
-                          </div>
-                          
-                          <div className="flex items-start gap-2 mb-2">
-                            <IconComponent className="w-4 h-4 text-orange-600 mt-1 flex-shrink-0" />
-                            <h4 className="font-medium text-sm leading-tight text-gray-800">{event.event}</h4>
-                          </div>
-                          
-                          <div className="mt-auto">
-                            <div className="text-xs text-orange-600 font-medium mb-1">
-                              {event.probability}% likelihood
-                            </div>
-                            <div className="text-sm font-bold text-orange-700">
-                              ${event.financialImpact.toLocaleString()}
-                            </div>
-                          </div>
-                          
-                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-300 to-orange-500"></div>
-                        </div>
-                      );
-                    })}
-                </div>
-                
-                <div className="mt-3 flex items-center justify-center gap-6 text-xs text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-orange-300 rounded"></div>
-                    <span>Near-term (1-3 years)</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-orange-400 rounded"></div>
-                    <span>Mid-term (3-5 years)</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                    <span>Long-term (5+ years)</span>
-                  </div>
                 </div>
               </div>
             )}
@@ -1380,17 +1198,6 @@ const App = () => {
                 <div className="font-bold text-base mb-2 text-gray-800">Email Advisor</div>
                 <div className="text-sm text-gray-600 leading-relaxed">Send your profile to an expert</div>
               </button>
-              
-              <button 
-                onClick={() => setCurrentScreen('advisor-match')}
-                className="flex-1 max-w-xs group p-4 border-2 border-purple-200 rounded-2xl hover:border-purple-500 hover:bg-purple-50 transition-all duration-300 text-center transform hover:-translate-y-1 hover:shadow-lg flex flex-col justify-center h-40"
-              >
-                <div className="mb-3 mx-auto w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div className="font-bold text-base mb-2 text-gray-800">Find an Advisor</div>
-                <div className="text-sm text-gray-600 leading-relaxed">Match with local experts</div>
-              </button>
             </div>
           </div>
         </div>
@@ -1399,26 +1206,6 @@ const App = () => {
   }
 
   if (currentScreen === 'email-summary') {
-    const currentStageData = getStageData(selectedLifeStage);
-    
-    const calculateTotals = () => {
-      let totals = {};
-      let grandTotal = 0;
-      
-      categories.forEach(category => {
-        const categoryData = currentStageData.categories[category.id];
-        if (categoryData && categoryData.expenses) {
-          const total = categoryData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-          totals[category.name] = total;
-          grandTotal += total;
-        }
-      });
-      
-      return { totals, grandTotal };
-    };
-
-    const { totals, grandTotal } = calculateTotals();
-
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
@@ -1435,7 +1222,6 @@ const App = () => {
               <div>
                 <h2 className="text-3xl font-bold text-gray-900">Financial Summary</h2>
                 <p className="text-xl text-blue-600 font-medium">{lifeStages.find(s => s.id === selectedLifeStage)?.name} ({lifeStages.find(s => s.id === selectedLifeStage)?.ageRange})</p>
-                <p className="text-gray-600">{currentStageData.description}</p>
               </div>
             </div>
 
@@ -1451,41 +1237,6 @@ const App = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
-              <div className="text-center">
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                  ${grandTotal.toLocaleString()}
-                </h3>
-                <p className="text-gray-600">Total Annual Financial Obligations</p>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4 mb-6">
-              <h3 className="font-bold text-blue-900 mb-2">Financial Categories Summary</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {Object.entries(totals).map(([category, amount]) => (
-                  <div key={category} className="flex items-center justify-between">
-                    <span>{categories.find(c => c.name === category)?.icon} {category}</span>
-                    <span className="font-bold">${amount.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {predictions.length > 0 && (
-              <div className="bg-orange-50 rounded-lg p-4 mb-6">
-                <h3 className="font-bold text-orange-900 mb-2">AI Life Event Predictions</h3>
-                <div className="space-y-2">
-                  {predictions.slice(0, 5).map((prediction, idx) => (
-                    <div key={idx} className="text-sm">
-                      <strong>{prediction.event}</strong> - {prediction.probability}% probability, {prediction.timeframe} 
-                      <span className="text-orange-700 font-medium"> (${prediction.financialImpact.toLocaleString()} impact)</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-              
             <div className="flex gap-4 mt-6">
               <button 
                 onClick={() => setCurrentScreen('results')}
@@ -1505,18 +1256,6 @@ Personal Profile:
 - Income: ${userProfile.income || 'Not provided'}
 - Location: ${userProfile.zipCode || '75098'}, ${selectedCountry}
 
-Financial Summary:
-Total Annual Obligations: $${grandTotal.toLocaleString()}
-
-${Object.entries(totals).map(([category, amount]) => 
-  `${category}: $${amount.toLocaleString()}`
-).join('\n')}
-
-AI Predictions:
-${predictions.map(p => 
-  `• ${p.event} (${p.probability}% probability, ${p.timeframe}) - $${p.financialImpact.toLocaleString()} impact`
-).join('\n')}
-
 Generated by LISA (Life Stage Advisor) - InterGen Data
                   `.trim();
                   
@@ -1528,19 +1267,6 @@ Generated by LISA (Life Stage Advisor) - InterGen Data
               >
                 <Mail className="w-4 h-4" />
                 📧 Send Email
-              </button>
-              <button 
-                onClick={() => {
-                  const content = `Complete financial analysis data for ${lifeStages.find(s => s.id === selectedLifeStage)?.name}...`;
-                  navigator.clipboard.writeText(content).then(() => {
-                    alert('Financial summary copied to clipboard!');
-                  }).catch(() => {
-                    alert('Copy to clipboard not supported in this browser.');
-                  });
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                📋 Copy Data
               </button>
             </div>
           </div>
@@ -1576,36 +1302,6 @@ Generated by LISA (Life Stage Advisor) - InterGen Data
                   <div className="text-2xl font-bold text-green-600">78/100</div>
                 </div>
               </div>
-
-              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Neighborhood Comparison</h3>
-                    <p className="text-sm text-gray-600">"Better prepared than 67% of families in 75098"</p>
-                  </div>
-                  <Share2 className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-
-              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Top Risk Awareness</h3>
-                    <p className="text-sm text-gray-600">"Ready for the big expenses others miss"</p>
-                  </div>
-                  <Share2 className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-
-              <div className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Success Prediction</h3>
-                    <p className="text-sm text-gray-600">"On track to meet 85% of financial goals"</p>
-                  </div>
-                  <Share2 className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
             </div>
 
             <div className="flex gap-4">
@@ -1618,134 +1314,6 @@ Generated by LISA (Life Stage Advisor) - InterGen Data
                 Send via Email
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (currentScreen === 'advisor-match') {
-    const advisors = [
-      {
-        name: "Sarah Johnson, CFP®",
-        firm: "Wealth Partners Dallas",
-        specialty: "Family Financial Planning",
-        rating: 4.9,
-        experience: "12 years",
-        distance: "2.3 miles",
-        avatar: "👩‍💼",
-        strengths: ["College Planning", "Risk Management", "Estate Planning"]
-      },
-      {
-        name: "Michael Chen, CFA",
-        firm: "Investment Solutions Group",
-        specialty: "Investment & Retirement",
-        rating: 4.8,
-        experience: "8 years", 
-        distance: "3.7 miles",
-        avatar: "👨‍💼",
-        strengths: ["Portfolio Management", "Tax Planning", "Retirement Strategies"]
-      },
-      {
-        name: "Jennifer Martinez, CRPC®",
-        firm: "Family First Financial",
-        specialty: "Life Stage Planning",
-        rating: 4.9,
-        experience: "15 years",
-        distance: "1.8 miles", 
-        avatar: "👩‍💼",
-        strengths: ["Life Event Planning", "Insurance Review", "Education Funding"]
-      }
-    ];
-
-    return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => setCurrentScreen('results')} className="p-2 rounded-full hover:bg-gray-200">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-2xl font-bold">Find Your Perfect Advisor</h1>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 mb-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="text-3xl">🎯</div>
-              <div>
-                <h2 className="text-xl font-bold">Matched Based on Your Profile</h2>
-                <p className="text-gray-600">We've found advisors who specialize in your predicted life events and local area</p>
-              </div>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-4">
-              <p className="text-blue-800 text-sm">
-                <strong>Your Profile:</strong> {lifeStages.find(s => s.id === selectedLifeStage)?.name} ({lifeStages.find(s => s.id === selectedLifeStage)?.ageRange}) • College Planning Priority • Insurance Review Needed • Located in {userProfile.zipCode}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {advisors.map((advisor, idx) => (
-              <div key={idx} className="bg-white rounded-lg p-6 border border-gray-200 hover:border-blue-300 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl">{advisor.avatar}</div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold">{advisor.name}</h3>
-                      <p className="text-blue-600 font-medium">{advisor.firm}</p>
-                      <p className="text-gray-600 mb-2">{advisor.specialty}</p>
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span>{advisor.rating}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Briefcase className="w-4 h-4" />
-                          <span>{advisor.experience}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{advisor.distance}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {advisor.strengths.map((strength, i) => (
-                          <span key={i} className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                            {strength}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <button 
-                      onClick={handleEmailAdvisor}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                    >
-                      Send My Profile
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-                      Schedule Call
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <div className="text-sm text-gray-600">
-                    <strong>Why This Match:</strong> Specializes in families with college-bound children and has helped 200+ families prepare for educational expenses and unexpected life events.
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-6 text-center">
-            <h3 className="text-xl font-bold mb-2">Powered by Couplr.ai</h3>
-            <p className="text-purple-100 mb-4">Advanced AI matching connects you with advisors who understand your specific life stage and predicted challenges</p>
-            <button className="px-6 py-2 bg-white text-purple-600 rounded-lg hover:bg-gray-100 font-medium">
-              Learn More About Our Matching Process
-            </button>
           </div>
         </div>
       </div>
